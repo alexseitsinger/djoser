@@ -1,8 +1,26 @@
+import shortuuid
 from django.contrib.auth import login, logout, user_logged_in, user_logged_out
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 from djoser.conf import settings
+
+
+def get_user_id_field(user):
+    return getattr(user, settings.USER_ID_FIELD, getattr(user, "pk", None))
+
+
+def get_user_id_field_kwargs(user):
+    name = settings.USER_ID_FIELD
+    value = get_user_id_field(user)
+    return {name: value}
+
+
+def get_user_id_field_random(user):
+    uid = get_user_id_field(user)
+    if isinstance(uid, int):
+        return uid + 1
+    return shortuuid.uuid()
 
 
 def encode_uid(pk):

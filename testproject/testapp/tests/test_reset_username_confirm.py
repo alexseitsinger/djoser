@@ -8,6 +8,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
 import djoser.utils
+from djoser import utils
 import djoser.views
 from djoser.conf import settings as default_settings
 from testapp.tests.common import create_user
@@ -24,7 +25,7 @@ class UsernameResetConfirmViewTest(
     def test_post_set_new_username(self):
         user = create_user()
         data = {
-            "uid": djoser.utils.encode_uid(user.pk),
+            "uid": djoser.utils.encode_uid(utils.get_user_id_field(user)),
             "token": default_token_generator.make_token(user),
             "new_username": "new_username",
         }
@@ -72,8 +73,9 @@ class UsernameResetConfirmViewTest(
 
     def test_post_not_set_new_username_if_user_does_not_exist(self):
         user = create_user()
+        random_uid = utils.get_user_id_field_random(user)
         data = {
-            "uid": djoser.utils.encode_uid(user.pk + 1),
+            "uid": djoser.utils.encode_uid(random_uid),
             "token": default_token_generator.make_token(user),
             "new_username": "new_username",
         }
@@ -88,7 +90,7 @@ class UsernameResetConfirmViewTest(
     def test_post_not_set_new_username_if_wrong_token(self):
         user = create_user()
         data = {
-            "uid": djoser.utils.encode_uid(user.pk),
+            "uid": djoser.utils.encode_uid(utils.get_user_id_field(user)),
             "token": "wrong-token",
             "new_username": "new_username",
         }
@@ -108,7 +110,7 @@ class UsernameResetConfirmViewTest(
     def test_post_not_set_new_username_if_username_mismatch(self):
         user = create_user()
         data = {
-            "uid": djoser.utils.encode_uid(user.pk),
+            "uid": djoser.utils.encode_uid(utils.get_user_id_field(user)),
             "token": default_token_generator.make_token(user),
             "new_username": "new_username",
             "re_new_username": "wrong",
@@ -132,7 +134,7 @@ class UsernameResetConfirmViewTest(
     def test_post_not_set_new_username_if_mismatch(self):
         user = create_user()
         data = {
-            "uid": djoser.utils.encode_uid(user.pk),
+            "uid": djoser.utils.encode_uid(utils.get_user_id_field(user)),
             "token": default_token_generator.make_token(user),
             "new_username": "new_username",
             "re_new_username": "wrong",
@@ -150,7 +152,7 @@ class UsernameResetConfirmViewTest(
     def test_post_not_reset_if_fails_username_validation(self):
         user = create_user()
         data = {
-            "uid": djoser.utils.encode_uid(user.pk),
+            "uid": djoser.utils.encode_uid(utils.get_user_id_field(user)),
             "token": default_token_generator.make_token(user),
             "new_username": "new username",
             "re_new_username": "new_username",
@@ -167,7 +169,7 @@ class UsernameResetConfirmViewTest(
     def test_post_username_changed_confirmation_email(self):
         user = create_user()
         data = {
-            "uid": djoser.utils.encode_uid(user.pk),
+            "uid": djoser.utils.encode_uid(utils.get_user_id_field(user)),
             "token": default_token_generator.make_token(user),
             "new_username": "new_username",
         }

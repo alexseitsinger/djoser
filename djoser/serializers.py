@@ -136,8 +136,8 @@ class UserFunctionsMixin:
         except User.DoesNotExist:
             pass
         if (
-                settings.PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND
-                or settings.USERNAME_RESET_SHOW_EMAIL_NOT_FOUND
+            settings.PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND
+            or settings.USERNAME_RESET_SHOW_EMAIL_NOT_FOUND
         ):
             self.fail("email_not_found")
 
@@ -170,7 +170,7 @@ class UidAndTokenSerializer(serializers.Serializer):
         # doesn't work with modelserializer
         try:
             uid = utils.decode_uid(self.initial_data.get("uid", ""))
-            self.user = User.objects.get(pk=uid)
+            self.user = User.objects.get(**{settings.USER_ID_FIELD: uid})
         except (User.DoesNotExist, ValueError, TypeError, OverflowError):
             key_error = "invalid_uid"
             raise ValidationError(
@@ -330,7 +330,7 @@ class UserDeleteSerializer(CurrentPasswordSerializer):
 class SetUsernameSerializer(UsernameSerializer, CurrentPasswordSerializer):
     class Meta:
         model = User
-        fields = (settings.LOGIN_FIELD, 'current_password')
+        fields = (settings.LOGIN_FIELD, "current_password")
 
 
 class SetUsernameRetypeSerializer(SetUsernameSerializer, UsernameRetypeSerializer):

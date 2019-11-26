@@ -6,6 +6,7 @@ from rest_framework import serializers, status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from djoser.conf import settings as djoser_settings
 from testapp.tests.common import create_user, login_user
 
 User = get_user_model()
@@ -33,7 +34,10 @@ class UserViewSetMeTest(
         self.assert_status_equal(response, status.HTTP_200_OK)
         self.assertEqual(
             set(response.data.keys()),
-            set([User.USERNAME_FIELD, User._meta.pk.name] + User.REQUIRED_FIELDS),
+            set(
+                [User.USERNAME_FIELD, djoser_settings.USER_ID_FIELD]
+                + User.REQUIRED_FIELDS
+            ),
         )
 
     @override_settings(DJOSER=dict(settings.DJOSER, **{"SEND_ACTIVATION_EMAIL": False}))

@@ -1,6 +1,7 @@
 from django.contrib.auth.base_user import BaseUserManager
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser, AbstractUser
 from django.db import models
+from shortuuidfield import ShortUUIDField
 
 
 class CustomUserManager(BaseUserManager):
@@ -51,3 +52,38 @@ class ExampleUser(AbstractBaseUser):
 
     EMAIL_FIELD = "email"
     USERNAME_FIELD = "email"
+
+
+class UserManager(BaseUserManager):
+    use_in_migrations = True
+
+    def _create(self, **kw):
+        username = kw.pop("username")
+        email = kw.pop("email")
+        password = kw.pop("password", None)
+        normalized_username = self.model.normalize_username(username)
+        user = self.model(username=normalized_username, email=email, **kw)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_user(self, **kw):
+        kw["is_staff"] = False
+        kw["is_superuser"] = False
+        return self._create(**kw)
+
+    def create_superuser(self, **kw):
+        kw["is_staff"] = True
+        kw["is_superuser"] = True
+        return self._create(**kw)
+
+
+class User(AbstractUser):
+    uuid = ShortUUIDField()
+    email = models.EmailField(unique=True, blank=False)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = "username"
+    EMAIL_FIELD = "email"
+    REQUIRED_FIELDS = ["email"]

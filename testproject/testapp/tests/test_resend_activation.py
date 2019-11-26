@@ -21,7 +21,6 @@ class TestResendActivationEmail(
         user = create_user(is_active=False)
         data = {"email": user.email}
         response = self.client.post(self.base_url, data)
-
         self.assert_email_exists(to=[user.email])
         self.assert_status_equal(response, status.HTTP_204_NO_CONTENT)
 
@@ -30,7 +29,6 @@ class TestResendActivationEmail(
         user = create_user(is_active=False)
         data = {"email": user.email}
         response = self.client.post(self.base_url, data)
-
         self.assert_emails_in_mailbox(0)
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
 
@@ -39,7 +37,6 @@ class TestResendActivationEmail(
         user = create_user(is_active=True)
         data = {"email": user.email}
         response = self.client.post(self.base_url, data)
-
         self.assert_emails_in_mailbox(0)
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
 
@@ -48,7 +45,6 @@ class TestResendActivationEmail(
         user = create_user(is_active=False, password=None)
         data = {"email": user.email}
         response = self.client.post(self.base_url, data)
-
         self.assert_emails_in_mailbox(0)
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
 

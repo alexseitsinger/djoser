@@ -6,6 +6,9 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from djoser.conf import settings as djoser_settings
+import djoser.utils
+from djoser import utils
 from .common import create_user, login_user
 
 User = get_user_model()
@@ -16,17 +19,24 @@ class UserViewTest(
 ):
     def setUp(self):
         self.user = create_user()
-        self.client.force_authenticate(user=self.user)
-        self.url = reverse("user-detail", kwargs={User._meta.pk.name: self.user.pk})
+        self.client.force_authenticate(self.user)
+        self.url = reverse(
+            "user-detail", kwargs=utils.get_user_id_field_kwargs(self.user)
+        )
+        # self.url = reverse("user-detail", kwargs={getattr(User, djoser_settings.USER_ID_FIELD).name: self.user.pk})
 
     def test_get_return_user(self):
         login_user(self.client, self.user)
+
         response = self.client.get(self.url)
 
         self.assert_status_equal(response, status.HTTP_200_OK)
         self.assertEqual(
             set(response.data.keys()),
-            set([User.USERNAME_FIELD, User._meta.pk.name] + User.REQUIRED_FIELDS),
+            set(
+                [User.USERNAME_FIELD, djoser_settings.USER_ID_FIELD]
+                + User.REQUIRED_FIELDS
+            ),
         )
 
     @override_settings(DJOSER=dict(settings.DJOSER, **{"SEND_ACTIVATION_EMAIL": False}))
@@ -34,7 +44,7 @@ class UserViewTest(
         data = {"email": "ringo@beatles.com"}
 
         login_user(self.client, self.user)
-        response = self.client.put(self.url, data=data)
+        response = self.client.patch(self.url, data=data)
 
         self.assert_status_equal(response, status.HTTP_200_OK)
         self.user.refresh_from_db()
@@ -46,7 +56,7 @@ class UserViewTest(
         data = {"email": "ringo@beatles.com"}
 
         login_user(self.client, self.user)
-        response = self.client.put(self.url, data=data)
+        response = self.client.patch(self.url, data=data)
 
         self.assert_status_equal(response, status.HTTP_200_OK)
         self.user.refresh_from_db()
@@ -65,7 +75,8 @@ class UserViewTest(
             }
         )
         data = {"email": "ringo@beatles.com"}
-        url = reverse("user-detail", kwargs={User._meta.pk.name: other_user.pk})
+        url = reverse("user-detail", kwargs=utils.get_user_id_field_kwargs(other_user))
+        # url = reverse("user-detail", kwargs={getattr(User, djoser_settings.USER_ID_FIELD).name: other_user.pk})
 
         login_user(self.client, self.user)
         response1 = self.client.put(url, data=data)
@@ -83,7 +94,8 @@ class UserViewTest(
             }
         )
         data = {"email": "ringo@beatles.com"}
-        url = reverse("user-detail", kwargs={User._meta.pk.name: other_user.pk})
+        url = reverse("user-detail", kwargs=utils.get_user_id_field_kwargs(other_user))
+        # url = reverse("user-detail", kwargs={getattr(User, djoser_settings.USER_ID_FIELD).name: other_user.pk})
 
         login_user(self.client, self.user)
         response1 = self.client.put(url, data=data)

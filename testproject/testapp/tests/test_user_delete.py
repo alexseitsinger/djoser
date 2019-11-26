@@ -7,6 +7,8 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+import djoser.utils
+from djoser import utils
 import djoser.views
 from djoser.conf import settings as djoser_settings
 
@@ -94,7 +96,12 @@ class UserViewSetDeletionTest(
         self.client.force_authenticate(user=user)
 
         response = self.client.delete(
-            reverse("user-detail", kwargs={User._meta.pk.name: user.pk}), data=data,
+            reverse(
+                "user-detail",
+                kwargs=utils.get_user_id_field_kwargs(user),
+                # kwargs={User._meta.pk.name: djoser.utils.get_user_identity(user)},
+            ),
+            data=data,
         )
 
         self.assert_status_equal(response, status.HTTP_204_NO_CONTENT)
@@ -108,7 +115,12 @@ class UserViewSetDeletionTest(
         self.client.force_authenticate(user=user)
 
         response = self.client.delete(
-            reverse("user-detail", kwargs={User._meta.pk.name: user.pk}), data=data,
+            reverse(
+                "user-detail",
+                kwargs=utils.get_user_id_field_kwargs(user),
+                # kwargs={User._meta.pk.name: djoser.utils.get_user_identity(user)},
+            ),
+            data=data,
         )
 
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
@@ -127,7 +139,12 @@ class UserViewSetDeletionTest(
 
             self.client.force_authenticate(user=user)
             self.client.delete(
-                reverse("user-detail", kwargs={User._meta.pk.name: user.pk}), data=data,
+                reverse(
+                    "user-detail",
+                    kwargs=utils.get_user_id_field_kwargs(user),
+                    # kwargs={User._meta.pk.name: djoser.utils.get_user_identity(user)},
+                ),
+                data=data,
             )
         override_settings(
             DJOSER=dict(settings.DJOSER, **{"PERMISSIONS": {"user_delete": old_value}})
@@ -147,7 +164,12 @@ class UserViewSetDeletionTest(
 
             self.client.force_authenticate(user=user)
             self.client.delete(
-                reverse("user-detail", kwargs={User._meta.pk.name: user.pk}), data=data,
+                reverse(
+                    "user-detail",
+                    kwargs=utils.get_user_id_field_kwargs(user),
+                    # kwargs={User._meta.pk.name: djoser.utils.get_user_identity(user)},
+                ),
+                data=data,
             )
         override_settings(
             DJOSER=dict(settings.DJOSER, **{"SERIALIZERS": {"user_delete": old_value}})

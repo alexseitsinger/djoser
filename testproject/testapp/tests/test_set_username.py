@@ -20,11 +20,9 @@ class SetUsernameViewTest(
 
     def test_post_set_new_username(self):
         user = create_user()
-        data = {"new_username": "ringo", "current_password": "secret"}
+        data = {"new_username": "dingo", "current_password": "secret"}
         login_user(self.client, user)
-
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_204_NO_CONTENT)
         user.refresh_from_db()
         self.assertEqual(data["new_username"], user.username)
@@ -32,11 +30,9 @@ class SetUsernameViewTest(
     def test_post_not_set_new_username_if_wrong_current_password(self):
         user = create_user()
         orig_username = user.get_username()
-        data = {"new_username": "ringo", "current_password": "wrong"}
+        data = {"new_username": "ringo", "password": "wrong"}
         login_user(self.client, user)
-
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
         user.refresh_from_db()
         self.assertEqual(orig_username, user.username)
@@ -47,25 +43,21 @@ class SetUsernameViewTest(
         data = {
             "new_username": "ringo",
             "re_new_username": "wrong",
-            "current_password": "secret",
+            "password": "secret",
         }
         login_user(self.client, user)
-
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
         user.refresh_from_db()
         self.assertNotEqual(data["new_username"], user.username)
 
     def test_post_not_set_new_username_if_exists(self):
         username = "tom"
-        create_user(username=username)
-        user = create_user(username="john")
+        create_user(username=username, email="another@aol.com", password="test")
+        user = create_user()
         data = {"new_username": username, "current_password": "secret"}
         login_user(self.client, user)
-
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
         user.refresh_from_db()
         self.assertNotEqual(user.username, username)
@@ -74,9 +66,7 @@ class SetUsernameViewTest(
         user = create_user()
         data = {"new_username": "$ wrong username #", "current_password": "secret"}
         login_user(self.client, user)
-
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
         user.refresh_from_db()
         self.assertNotEqual(user.username, data["new_username"])
@@ -86,11 +76,9 @@ class SetUsernameViewTest(
     )
     def test_post_update_username_and_send_activation_email(self):
         user = create_user()
-        data = {"new_username": "dango", "current_password": "secret"}
+        data = {"new_username": "ringo", "current_password": "secret"}
         login_user(self.client, user)
-
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_204_NO_CONTENT)
         self.assert_emails_in_mailbox(1)
         self.assert_email_exists(to=[user.email])
@@ -99,9 +87,7 @@ class SetUsernameViewTest(
         user = create_user()
         data = {"new_username": "john", "current_password": "secret"}
         login_user(self.client, user)
-
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(user.is_active)
 
@@ -118,11 +104,13 @@ class SetUsernameViewTest(
     )
     def test_post_set_new_custom_username(self):
         user = create_user(use_custom_data=True)
-        data = {"new_custom_username": "ringo", "current_password": "secret"}
+        data = {
+            "new_custom_username": "zingo",
+            "current_password": "secret",
+            "custom_email": "john@beatles.com",
+        }
         self.client.force_authenticate(user)
-
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_204_NO_CONTENT)
         user.refresh_from_db()
         self.assertEqual(data["new_custom_username"], user.get_username())
@@ -147,11 +135,10 @@ class SetUsernameViewTest(
             "new_custom_username": "ringo",
             "re_new_custom_username": "wrong",
             "current_password": "secret",
+            "custom_email": "john@beatles.com",
         }
         self.client.force_authenticate(user)
-
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
         user.refresh_from_db()
         self.assertNotEqual(data["new_custom_username"], user.get_username())

@@ -8,6 +8,7 @@ from rest_framework.test import APITestCase
 
 import djoser.signals
 import djoser.utils
+from djoser import utils
 import djoser.views
 from djoser.conf import settings as default_settings
 from testapp.tests.common import create_user
@@ -27,11 +28,11 @@ class ActivationViewTest(
         user = create_user()
         user.is_active = False
         user.save()
+
         data = {
-            "uid": djoser.utils.encode_uid(user.pk),
+            "uid": djoser.utils.encode_uid(utils.get_user_id_field(user)),
             "token": default_token_generator.make_token(user),
         }
-
         response = self.client.post(self.base_url, data)
         user.refresh_from_db()
 
@@ -40,8 +41,8 @@ class ActivationViewTest(
 
     def test_post_respond_with_bad_request_when_wrong_uid(self):
         user = create_user()
-        data = {"uid": "wrong-uid", "token": default_token_generator.make_token(user)}
 
+        data = {"uid": "wrong-uid", "token": default_token_generator.make_token(user)}
         response = self.client.post(self.base_url, data)
 
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
@@ -53,12 +54,13 @@ class ActivationViewTest(
 
     def test_post_respond_with_bad_request_when_stale_token(self):
         user = create_user()
+
         djoser.signals.user_activated.connect(self.signal_receiver)
+
         data = {
-            "uid": djoser.utils.encode_uid(user.pk),
+            "uid": djoser.utils.encode_uid(utils.get_user_id_field(user)),
             "token": default_token_generator.make_token(user),
         }
-
         response = self.client.post(self.base_url, data)
 
         self.assert_status_equal(response, status.HTTP_403_FORBIDDEN)
@@ -71,9 +73,13 @@ class ActivationViewTest(
 
     def test_post_respond_with_bad_request_when_wrong_token(self):
         user = create_user()
-        djoser.signals.user_activated.connect(self.signal_receiver)
-        data = {"uid": djoser.utils.encode_uid(user.pk), "token": "wrong-token"}
 
+        djoser.signals.user_activated.connect(self.signal_receiver)
+
+        data = {
+            "uid": djoser.utils.encode_uid(utils.get_user_id_field(user)),
+            "token": "wrong-token",
+        }
         response = self.client.post(self.base_url, data)
 
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
@@ -91,12 +97,13 @@ class ActivationViewTest(
         user = create_user()
         user.is_active = False
         user.save()
+
         djoser.signals.user_activated.connect(self.signal_receiver)
+
         data = {
-            "uid": djoser.utils.encode_uid(user.pk),
+            "uid": djoser.utils.encode_uid(utils.get_user_id_field(user)),
             "token": default_token_generator.make_token(user),
         }
-
         response = self.client.post(self.base_url, data)
 
         self.assert_status_equal(response, status.HTTP_204_NO_CONTENT)

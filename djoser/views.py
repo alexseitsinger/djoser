@@ -61,7 +61,8 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.request.user
         queryset = super().get_queryset()
         if settings.HIDE_USERS and self.action == "list" and not user.is_staff:
-            queryset = queryset.filter(pk=user.pk)
+            kw = utils.get_user_id_field_kwargs(user)
+            queryset = queryset.filter(**kw)
         return queryset
 
     def get_permissions(self):

@@ -25,9 +25,13 @@ class UserCreateViewTest(
         self.base_url = reverse("user-list")  # /auth/users/
 
     def test_post_create_user_without_login(self):
-        data = {"username": "john", "password": "secret", "csrftoken": "asdf"}
+        data = {
+            "username": "john",
+            "password": "secret",
+            "csrftoken": "asdf",
+            "email": "john@aol.com",
+        }
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_201_CREATED)
         self.assertTrue("password" not in response.data)
         self.assert_instance_exists(User, username=data["username"])
@@ -38,12 +42,10 @@ class UserCreateViewTest(
     def test_post_create_user_with_login_and_send_activation_email(self):
         data = {"username": "john", "email": "john@beatles.com", "password": "secret"}
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_201_CREATED)
         self.assert_instance_exists(User, username=data["username"])
         self.assert_emails_in_mailbox(1)
         self.assert_email_exists(to=[data["email"]])
-
         user = User.objects.get(username="john")
         self.assertFalse(user.is_active)
 
@@ -56,12 +58,10 @@ class UserCreateViewTest(
     def test_post_create_user_with_login_and_send_confirmation_email(self):
         data = {"username": "john", "email": "john@beatles.com", "password": "secret"}
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_201_CREATED)
         self.assert_instance_exists(User, username=data["username"])
         self.assert_emails_in_mailbox(1)
         self.assert_email_exists(to=[data["email"]])
-
         user = User.objects.get(username="john")
         self.assertTrue(user.is_active)
 
@@ -69,13 +69,16 @@ class UserCreateViewTest(
         create_user(username="john")
         data = {"username": "john", "password": "secret", "csrftoken": "asdf"}
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
 
     def test_post_not_register_if_fails_password_validation(self):
-        data = {"username": "john", "password": "666", "csrftoken": "asdf"}
+        data = {
+            "username": "john",
+            "password": "666",
+            "csrftoken": "asdf",
+            "email": "john@aol.com",
+        }
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
         response.render()
         self.assertEqual(
@@ -93,9 +96,9 @@ class UserCreateViewTest(
             "password": "secret",
             "re_password": "wrong",
             "csrftoken": "asdf",
+            "email": "john@aol.com",
         }
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
         response.render()
         self.assertEqual(
@@ -133,7 +136,6 @@ class UserCreateViewTest(
             "custom_required_field": "42",
         }
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_201_CREATED)
         self.assertTrue("password" not in response.data)
         custom_user_model = get_user_model()
@@ -174,7 +176,6 @@ class UserCreateViewTest(
     def test_post_create_custom_user_without_username(self):
         data = {"password": "secret", "email": "test@user1.com"}
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_201_CREATED)
         self.assertTrue("password" not in response.data)
         self.assert_instance_exists(ExampleUser, email=data["email"])
@@ -193,7 +194,6 @@ class UserCreateViewTest(
     def test_post_create_custom_user_missing_required_fields(self):
         data = {"password": "secret"}
         response = self.client.post(self.base_url, data)
-
         self.assert_status_equal(response, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["email"][0].code, "required")
 
@@ -204,7 +204,12 @@ class UserCreateViewTest(
         # GIVEN user is required to retype password
         # (see decorator)
         # WHEN sent correctly retyped password
-        data = {"username": "john", "password": "secret", "re_password": "secret"}
+        data = {
+            "username": "john",
+            "password": "secret",
+            "re_password": "secret",
+            "email": "john@aol.com",
+        }
         response = self.client.post(self.base_url, data)
         # THEN I get correct response
         self.assert_status_equal(response, status.HTTP_201_CREATED)

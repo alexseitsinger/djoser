@@ -4,6 +4,8 @@ DEBUG = True
 
 BASE_DIR = os.path.dirname(__file__)
 
+AUTH_USER_MODEL = "testapp.User"
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -66,11 +68,13 @@ SOCIAL_AUTH_STEAM_API_KEY = os.environ.get("STEAM_API_KEY", "")
 SOCIAL_AUTH_OPENID_TRUST_ROOT = "http://test.localhost/"
 
 DJOSER = {
+    "USER_ID_FIELD": "uuid",
     "SEND_ACTIVATION_EMAIL": False,
     "PASSWORD_RESET_CONFIRM_URL": "#/password/reset/confirm/{uid}/{token}",
     "USERNAME_RESET_CONFIRM_URL": "#/username/reset/confirm/{uid}/{token}",
     "ACTIVATION_URL": "#/activate/{uid}/{token}",
     "SOCIAL_AUTH_ALLOWED_REDIRECT_URIS": ["http://test.localhost/"],
+    "SERIALIZERS": {"user": "testapp.serializers.UserSerializer"},
 }
 
 JWT_AUTH = {"JWT_ALLOW_REFRESH": True}
